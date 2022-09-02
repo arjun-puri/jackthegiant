@@ -10,6 +10,7 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import helpers.GameInfo;
 import me.arjunpuri.jackthegiant.GameMain;
@@ -20,18 +21,22 @@ public class Gameplay implements Screen {
     private Sprite[] bgs;
     private OrthographicCamera mainCamera;
     private Viewport viewport;
+    private float lastBGPosition;
 
     /**
      * Creates game background by stacking 3 images repeating together.
      * length can be increased later.
      */
     void createBackgrounds() {
-        bgs = new Sprite[3];
+        bgs = new Sprite[2];
 
         for(int i = 0; i<bgs.length; i++) {
             bgs[i] = new Sprite(new Texture("Backgrounds/Game BG.png"));
             bgs[i].setPosition(0, - (i * bgs[i].getHeight()));
         }
+
+//            initialize lastBGPosition to be the end of last BG in array.
+        lastBGPosition = Arrays.stream(bgs).reduce(0f, (acc, b) -> acc + b.getHeight(), (acc, subtotal) -> acc + subtotal);
     }
 
     /**
@@ -41,6 +46,23 @@ public class Gameplay implements Screen {
         for (Sprite bg:
              bgs) {
             batch.draw(bg, bg.getX(), bg.getY());
+        }
+    }
+
+    void loopingBackground() {
+        System.out.println("camera: " + mainCamera.position.y);
+        System.out.println("lastBGPosition: " + lastBGPosition);
+        for (int i = 0; i < bgs.length; i++) {
+            Sprite bg = bgs[i];
+            System.out.println("bg" + i + ": " + bgs[i].getY());
+//            TODO: investigate the camera red flicker.
+//            camera correction so negating another 5 as its not fully out of view
+//            seems dependent on the camera speed as well, keeping it 10 for now.
+//            might be we will implement some camera move speed variable then we can replace this.
+            if(bg.getY() - bg.getHeight() / 2f - 10 > mainCamera.position.y) {
+                bg.setPosition(0, -lastBGPosition);
+                lastBGPosition = Math.abs(lastBGPosition + bg.getHeight());
+            }
         }
     }
 
@@ -58,10 +80,11 @@ public class Gameplay implements Screen {
 
     void update(float dt) {
         moveCamera();
+        loopingBackground();
     }
 
     void moveCamera() {
-        this.mainCamera.position.y -= 1;
+        this.mainCamera.position.y -= 50;
     }
 
     @Override
