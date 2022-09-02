@@ -1,20 +1,25 @@
 package scenes;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.ArrayList;
 
+import helpers.GameInfo;
 import me.arjunpuri.jackthegiant.GameMain;
 
 public class Gameplay implements Screen {
     private GameMain game;
     private SpriteBatch batch;
     private Sprite[] bgs;
-
+    private OrthographicCamera mainCamera;
+    private Viewport viewport;
 
     /**
      * Creates game background by stacking 3 images repeating together.
@@ -44,6 +49,19 @@ public class Gameplay implements Screen {
         this.game = game;
         this.batch = game.getBatch();
         createBackgrounds();
+
+        this.mainCamera = new OrthographicCamera(GameInfo.WIDTH, GameInfo.HEIGHT);
+        this.mainCamera.position.set(GameInfo.WIDTH / 2f, GameInfo.HEIGHT / 2f, 0);
+
+        this.viewport = new StretchViewport(GameInfo.WIDTH, GameInfo.HEIGHT, mainCamera);
+    }
+
+    void update(float dt) {
+        moveCamera();
+    }
+
+    void moveCamera() {
+        this.mainCamera.position.y -= 1;
     }
 
     @Override
@@ -53,13 +71,16 @@ public class Gameplay implements Screen {
 
     @Override
     public void render(float delta) {
+        update(delta);
+
         ScreenUtils.clear(1, 0, 0, 1);
 
         batch.begin();
-
         drawBackgrounds();
-
         batch.end();
+
+        batch.setProjectionMatrix(mainCamera.combined);
+        mainCamera.update();
     }
 
     @Override
